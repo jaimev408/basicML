@@ -1,0 +1,117 @@
+---
+title: "HW 4 Linear Algebra"
+author: "Joshua Anthony Joseph, Nishi Sharma, Jaime Vargas Diaz"
+date: "12/8/2019"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float:
+      collapsed: no
+  pdf_document:
+    toc: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Assignment Intro
+
+
+Problem	Statement
+Classification by computer of	handwritten	digits	is	a	standard	problem	in	pattern recognition.	The	typical	application	is	automatic	reading	of	zip	codes	on	envelopes.	In	this	assignment you’ll	address	the	following	problem:	Given	a	set	of	manually	classified	digits	(the	training	set),	classify	a	set	of	unknown	digits	(the	test set) using	SVD	method.
+
+Data Set
+
+We	will	be	using	the	US	postal	Service	database	that	contains	1707 training and	2007 test	digits	(uploaded	to	Canvas). Each	image	is	a	grayscale	16x16	image	that	is	
+
+The	training images	are	stored	in	trainInput.csv. (256x1707).	
+
+• The	correct	digit	corresponding	to	each	column	of	trainInput is	stored	in	trainOutput.csv.(1x1707).
+
+• The	test	images	are	stored	in	testInput.csv. (256x2007).
+
+• The	correct	digit	corresponding	to	each	column	of	testInput is	stored	in testOutput.csv.(1x2007).
+
+
+# Procedure
+
+We start the project by reading the data in and transposing the trainInput, trainOutput, and testInputDataframes. We also read the libraries we will use.
+
+```{r, echo=TRUE}
+library(MASS)
+trainInput = read.csv("C:/Users/lalin90/Downloads/trainInput.csv", header= FALSE)
+trainOutput = read.csv("C:/Users/lalin90/Downloads/trainOutput.csv", header = FALSE)
+testInput = read.csv("C:/Users/lalin90/Downloads/testInput.csv", header = FALSE)
+testOutput = as.matrix(read.csv("C:/Users/lalin90/Downloads/testOutput.csv", header = FALSE))
+trainInputTran = t(trainInput)
+trainOutputTran = t(trainOutput)
+testInputTran = t(testInput)
+trainInputOutput = cbind(trainInputTran, trainOutputTran)
+
+```
+
+Afterwards, we use a loop to do the following:
+
+- make 10 different matrices from the trainInput classified by the trainOutput to seperate the rows of digits by the number they represent
+- determine an SVD on each of these matrices
+- use the `v` part of the SVD model to represent singular digit images
+- Only use the first 20 singular images of each digit
+- Solve a least squares solution for the testInput data and the first 20 colums of the singular digit images
+- calculate the residual error
+
+
+```{r, echo=TRUE}
+for (i in 0:9){
+  
+  trainInput = trainInputOutput[trainInputOutput[,257] == i,c(1:256)]
+  svdV = svd(trainInput)
+  svdTop = svdV$v[,1:20]
+  One = apply(testInputTran,1, function(x) ginv(svdTop)%*%x)
+  Two = apply(One,2, function(y) svdTop%*%y)
+  Three =testInputTran-t(Two)
+  err = apply(Three, 1, function(z) sqrt(sum(z^2,0)))
+  nam <- paste("err", i, sep = "")
+  assign(nam, err)
+}
+
+```
+
+# Results
+
+Once we have the residual error, we use it to approximate digits based on the smallest error. We compare the results of our model to the actual results obtrained from the testOutput dataset.
+
+```{r}
+errors <- cbind(err0,err1,err2,err3,err4,err5,err6,err7,err8,err9)
+trueO = as.matrix(apply( errors, 1, function(x) which.min(x) - 1))
+
+table(testOutput,trueO)
+```
+
+Based on the table above, we can clearly see that the diagonals hold the biggest values by far, meaning that the models mostly matches the true output.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

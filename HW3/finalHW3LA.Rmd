@@ -1,0 +1,78 @@
+---
+title: "Principal Component Analysis Assignment"
+author: "Xi Wang,Natnicha Palakawong Na Ayuthaya,Jaime Vargas Diaz"
+date: "11/16/2019"
+output:
+  html_document:
+    number_sections: no
+    toc: yes
+    toc_float:
+      collapsed: no
+  pdf_document:
+    toc: yes
+---
+
+# Function
+
+1. <b>The function must have 2 inputs:</b>
+    + <b>a data frame that contains the data set</b>
+    + <b>a scaler that denotes the desired percentage of variance preserved in the transformed data set</b>
+2. <b>The function must have 3 outputs returned in a list, called number, PCA, and transformed:</b>
+    + <b>the minimum number of principal components that is necessary to retain the desired variance
+specified by the user</b>
+    + <b>the principal components corresponding to previous part, in a matrix</b>
+    + <b>the transformed data set in a matrix</b>
+    
+This function takes two parameters, a dataframe data and a percentage varPercent.
+It calculates the minimum number of PCAs necesary to reach the variance percentage, the PCA components, and the new transformed matrix and returns all three in a list.
+
+```{r }
+library(psych)
+MyPCA<-function(df,scaler){
+  newmatrix=data.matrix(df, rownames.force = NA) #transform dataframe to a matrix
+  datamean=colMeans(newmatrix) #center the matrix (notice the vectors are row-distributed in a dataframe)
+  datacentered=sweep(newmatrix,2,datamean) 
+  S=1/(nrow(newmatrix)-1)*(t(datacentered)%*%datacentered) #find the convariance matrix
+  Eigenvalue=eigen(S)$value #find eigenvector and eigenvalue
+  Eigenvector=eigen(S)$vectors
+  var=Eigenvalue/tr(S) #find the fraction of variance each principle components contributes
+  a=0
+  i=1
+  k=0
+  while (i<=length(var)) {
+    a=a+var[i]
+    k=i
+    i=i+1
+    if (a>= scaler){
+      i=length(var)+1}
+    }
+  number=k #the minimum numbers of principle components required to meet desired variance
+  P=Eigenvector[,1:number]  #the principal components corresponding to k
+  Y=t(P)%*%t(datacentered) 
+  PCA=P
+  transformed=t(Y) #transformed dataset in a matrix
+  
+  
+  finalresult<-list(number,PCA,transformed)
+  finalresult
+  }
+
+```
+
+# Output
+
+<b>
+Run your function on the first 5 features of R longley data set with the desired retained variance of 0.98.
+Longley data set is a data frame with 7 features related to economics. You will use the following features for
+this assignment: GNP.deflator, GNP, Unemployed, Armed.Forces, and Population.
+</b>
+
+We will test the function with the first 5 features of R's longley dataset and a desired variance of 0.98.
+
+```{r }
+longleysub<-longley[,1:5]
+MyPCA(longleysub,0.98)
+
+```
+
+The list returned above shows us the minimum number needed to retain the submitted variance, the principal components, and the new transformed dataset.
